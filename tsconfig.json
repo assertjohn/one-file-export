@@ -15,5 +15,9 @@
 	},
 	"exclude": [
 		"webviews"
+	],
+	"include": [
+		"src",
+		"webviews/types.d.ts"
 	]
 }

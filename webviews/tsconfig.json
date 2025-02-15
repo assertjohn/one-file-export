@@ -1,9 +1,16 @@
 {
     "extends": "@tsconfig/svelte/tsconfig.json",
-    "include": ["./**/*", "svelte.d.ts"],
-    "exclude": ["../node_modules/*"],
     "compilerOptions": {
-        "strict": true,
-        "types": ["svelte"]
-    }
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "baseUrl": ".",
+        "allowJs": true,
+        "checkJs": true,
+        "isolatedModules": true,
+        "typeRoots": ["./types"]
+    },
+    "include": ["**/*.ts", "**/*.svelte", "types/**/*.d.ts"],
+    "exclude": ["node_modules/*"]
 }
