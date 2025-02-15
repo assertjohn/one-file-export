@@ -1,0 +1,9 @@
+{
+    "extends": "@tsconfig/svelte/tsconfig.json",
+    "include": ["./**/*", "svelte.d.ts"],
+    "exclude": ["../node_modules/*"],
+    "compilerOptions": {
+        "strict": true,
+        "types": ["svelte"]
+    }
+}
