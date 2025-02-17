@@ -2,9 +2,10 @@
   "name": "one-file-export",
   "displayName": "One File Export",
   "description": "Combine multiple files in a single text block. Great for AI prompting.",
-  "version": "0.0.1",
+  "publisher": "husaria",
+  "version": "0.0.3",
   "engines": {
-    "vscode": "^1.97.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other"
@@ -31,13 +32,11 @@
           "contextualTitle": "VSinder"
         }
       ]
-    },
-    "commands": [
-      {
-        "command": "one-file-export.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/assertjohn/one-file-export"
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -61,7 +60,7 @@
     "@tsconfig/svelte": "^5.0.4",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@types/vscode": "^1.97.0",
+    "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vscode/test-cli": "^0.0.10",

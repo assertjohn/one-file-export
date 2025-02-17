@@ -8,8 +8,9 @@ import css from 'rollup-plugin-css-only';
 
 const production = !process.env.ROLLUP_WATCH;
 
+
 // Create separate configs for each entry point
-export default ['sidebar', 'helloworld'].map(name => ({
+export default ['sidebar'].map(name => ({
   input: `webviews/pages/${name}.ts`,
   output: {
     file: `out/compiled/${name}.js`,

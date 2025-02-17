@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 
-export class HelloWorldPanel {
+export class MainPanel {
     /**
      * Track the currently panel. Only allow a single panel to exist at a time.
      */
-    public static currentPanel: HelloWorldPanel | undefined;
+    public static currentPanel: MainPanel | undefined;
 
     public static readonly viewType = "hello-world";
 
@@ -19,16 +19,16 @@ export class HelloWorldPanel {
             : undefined;
 
         // If we already have a panel, show it.
-        if (HelloWorldPanel.currentPanel) {
-            HelloWorldPanel.currentPanel._panel.reveal(column);
-            HelloWorldPanel.currentPanel._update();
+        if (MainPanel.currentPanel) {
+            MainPanel.currentPanel._panel.reveal(column);
+            MainPanel.currentPanel._update();
             return;
         }
 
         // Otherwise, create a new panel.
         const panel = vscode.window.createWebviewPanel(
-            HelloWorldPanel.viewType,
-            "VSinder",
+            MainPanel.viewType,
+            "One Panel Export",
             column || vscode.ViewColumn.One,
             {
                 // Enable javascript in the webview
@@ -42,16 +42,16 @@ export class HelloWorldPanel {
             }
         );
 
-        HelloWorldPanel.currentPanel = new HelloWorldPanel(panel, extensionUri);
+        MainPanel.currentPanel = new MainPanel(panel, extensionUri);
     }
 
     public static kill() {
-        HelloWorldPanel.currentPanel?.dispose();
-        HelloWorldPanel.currentPanel = undefined;
+        MainPanel.currentPanel?.dispose();
+        MainPanel.currentPanel = undefined;
     }
 
     public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-        HelloWorldPanel.currentPanel = new HelloWorldPanel(panel, extensionUri);
+        MainPanel.currentPanel = new MainPanel(panel, extensionUri);
     }
 
     private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
@@ -80,7 +80,7 @@ export class HelloWorldPanel {
     }
 
     public dispose() {
-        HelloWorldPanel.currentPanel = undefined;
+        MainPanel.currentPanel = undefined;
 
         // Clean up our resources
         this._panel.dispose();
@@ -96,7 +96,7 @@ export class HelloWorldPanel {
     private async _update() {
         const webview = this._panel.webview;
 
-        this._panel.webview.html = this._getHtmlForWebview(webview);
+        // this._panel.webview.html = this._getHtmlForWebview(webview);
         webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
 
@@ -123,52 +123,52 @@ export class HelloWorldPanel {
         });
     }
 
-    private _getHtmlForWebview(webview: vscode.Webview) {
-        // Fix the path to match Rollup's output
-        const scriptUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, "out/compiled", "HelloWorld.js")
-        );
+    // private _getHtmlForWebview(webview: vscode.Webview) {
+    //     // Fix the path to match Rollup's output
+    //     const scriptUri = webview.asWebviewUri(
+    //         vscode.Uri.joinPath(this._extensionUri, "out/compiled", "HelloWorld.js")
+    //     );
 
-        // Local path to css styles
+    //     // Local path to css styles
 
 
-        // Uri to load styles into webview
-        const stylesResetUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
-        );
+    //     // Uri to load styles into webview
+    //     const stylesResetUri = webview.asWebviewUri(
+    //         vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
+    //     );
 
-        const stylesMainUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
-        // const cssUri = webview.asWebviewUri(
-        //   vscode.Uri.joinPath(this._extensionUri, "out", "compiled/swiper.css")
-        // );
+    //     const stylesMainUri = webview.asWebviewUri(
+    //         vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
+    //     // const cssUri = webview.asWebviewUri(
+    //     //   vscode.Uri.joinPath(this._extensionUri, "out", "compiled/swiper.css")
+    //     // );
 
-        // // Use a nonce to only allow specific scripts to be run
-        const nonce = getNonce();
+    //     // // Use a nonce to only allow specific scripts to be run
+    //     const nonce = getNonce();
 
-        return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-        -->
-        <meta http-equiv="Content-Security-Policy" img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<link href="${stylesResetUri}" rel="stylesheet">
-				<link href="${stylesMainUri}" rel="stylesheet">
-        <script nonce="${nonce}">
+    //     return `<!DOCTYPE html>
+	// 		<html lang="en">
+	// 		<head>
+	// 			<meta charset="UTF-8">
+	// 			<!--
+	// 				Use a content security policy to only allow loading images from https or from our extension directory,
+	// 				and only allow scripts that have a specific nonce.
+    //     -->
+    //     <meta http-equiv="Content-Security-Policy" img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+	// 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	// 			<link href="${stylesResetUri}" rel="stylesheet">
+	// 			<link href="${stylesMainUri}" rel="stylesheet">
+    //     <script nonce="${nonce}">
             
-        </script>
-			</head>
-      <body>
+    //     </script>
+	// 		</head>
+    //   <body>
 
-			</body>
-				<script src="${scriptUri}" nonce="${nonce}">
+	// 		</body>
+	// 			<script src="${scriptUri}" nonce="${nonce}">
             
-        </script>
-			</html>`;
-    }
+    //     </script>
+	// 		</html>`;
+    // }
 }
 

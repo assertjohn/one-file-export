@@ -50,7 +50,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             try {
               const combined = await this.combineSelectedFiles(files);
               await vscode.env.clipboard.writeText(combined);
-              vscode.window.showInformationMessage("Files content copied to clipboard!");
+              vscode.window.showInformationMessage("Files content copied to clipboard!", { modal: false })
+                .then(undefined, undefined);
+              setTimeout(() => {
+                // This will dismiss the message after 3 seconds
+              }, 3000);
             } catch (error: any) {
               vscode.window.showErrorMessage("Failed to copy: " + error.message);
             }
@@ -74,7 +78,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 preview: false,
                 viewColumn: vscode.ViewColumn.One,
               });
-              vscode.window.showInformationMessage("Text file generated from selected files!");
+              vscode.window.showInformationMessage("Text file generated from selected files!", { modal: false })
+                .then(undefined, undefined);
+              setTimeout(() => {
+                // This will dismiss the message after 3 seconds
+              }, 3000);
             } catch (error: any) {
               vscode.window.showErrorMessage("Failed to generate text file: " + error.message);
             }
@@ -83,7 +91,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         case "onInfo":
           if (data.value) {
-            vscode.window.showInformationMessage(data.value);
+            vscode.window.showInformationMessage(data.value, { modal: false })
+              .then(undefined, undefined);
+            setTimeout(() => {
+              // This will dismiss the message after 3 seconds
+            }, 3000);
           }
           break;
 
