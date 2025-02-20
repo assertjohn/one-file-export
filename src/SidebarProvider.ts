@@ -6,6 +6,7 @@ import * as fs from "fs/promises";
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _debounceTimer: NodeJS.Timeout | undefined;
+  private _fileTree: any[] = [];
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -21,89 +22,90 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
-        case "getFileTree":
-          {
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (workspaceFolders && workspaceFolders.length > 0) {
-              try {
-                const fileTree = await this.getWorkspaceFiles(workspaceFolders[0].uri);
-                webviewView.webview.postMessage({
-                  type: "fileTree",
-                  value: fileTree,
-                });
-              } catch (error: any) {
-                vscode.window.showErrorMessage("Error building file tree: " + error.message);
-              }
-            } else {
-              vscode.window.showWarningMessage("No workspace folder found.");
-            }
+        case "getFileTree": {
+          if (this._fileTree.length > 0) {
+            webviewView.webview.postMessage({
+              type: "fileTree",
+              value: this._fileTree,
+            });
+            return;
           }
-          break;
 
-        case "copyToClipboard":
-          {
-            const { files } = data;
-            if (!files || !files.length) {
-              vscode.window.showWarningMessage("No files selected");
-              return;
-            }
+          const workspaceFolders = vscode.workspace.workspaceFolders;
+          if (workspaceFolders && workspaceFolders.length > 0) {
             try {
-              const combined = await this.combineSelectedFiles(files);
-              await vscode.env.clipboard.writeText(combined);
-              vscode.window.showInformationMessage("Files content copied to clipboard!", { modal: false })
-                .then(undefined, undefined);
-              setTimeout(() => {
-                // This will dismiss the message after 3 seconds
-              }, 3000);
+              const fileTree = await this.getWorkspaceFiles(workspaceFolders[0].uri);
+              this._fileTree = fileTree;
+              webviewView.webview.postMessage({
+                type: "fileTree",
+                value: fileTree,
+              });
             } catch (error: any) {
-              vscode.window.showErrorMessage("Failed to copy: " + error.message);
+              vscode.window.showErrorMessage("Error building file tree: " + error.message);
             }
+          } else {
+            vscode.window.showWarningMessage("No workspace folder found.");
           }
           break;
+        }
 
-        case "generateTextFile":
-          {
-            const { files } = data;
-            if (!files || !files.length) {
-              vscode.window.showWarningMessage("No files selected");
-              return;
-            }
-            try {
-              const combined = await this.combineSelectedFiles(files);
-              const document = await vscode.workspace.openTextDocument({
-                content: combined,
-                language: "markdown",
-              });
-              await vscode.window.showTextDocument(document, {
-                preview: false,
-                viewColumn: vscode.ViewColumn.One,
-              });
-              vscode.window.showInformationMessage("Text file generated from selected files!", { modal: false })
-                .then(undefined, undefined);
-              setTimeout(() => {
-                // This will dismiss the message after 3 seconds
-              }, 3000);
-            } catch (error: any) {
-              vscode.window.showErrorMessage("Failed to generate text file: " + error.message);
-            }
+        case "updateFileTree": {
+          this._fileTree = data.value;
+          break;
+        }
+
+        case "copyToClipboard": {
+          const { files } = data;
+          if (!files || !files.length) {
+            vscode.window.showWarningMessage("No files selected");
+            return;
+          }
+          try {
+            const combined = await this.combineSelectedFiles(files);
+            await vscode.env.clipboard.writeText(combined);
+            this.showAutoDismissMessage("Files content copied to clipboard!", 3000);
+          } catch (error: any) {
+            vscode.window.showErrorMessage("Failed to copy: " + error.message);
           }
           break;
+        }
 
-        case "onInfo":
+        case "generateTextFile": {
+          const { files } = data;
+          if (!files || !files.length) {
+            vscode.window.showWarningMessage("No files selected");
+            return;
+          }
+          try {
+            const combined = await this.combineSelectedFiles(files);
+            const document = await vscode.workspace.openTextDocument({
+              content: combined,
+              language: "markdown",
+            });
+            await vscode.window.showTextDocument(document, {
+              preview: false,
+              viewColumn: vscode.ViewColumn.One,
+            });
+            this.showAutoDismissMessage("Text file generated from selected files!", 3000);
+          } catch (error: any) {
+            vscode.window.showErrorMessage("Failed to generate text file: " + error.message);
+          }
+          break;
+        }
+
+        case "onInfo": {
           if (data.value) {
-            vscode.window.showInformationMessage(data.value, { modal: false })
-              .then(undefined, undefined);
-            setTimeout(() => {
-              // This will dismiss the message after 3 seconds
-            }, 3000);
+            this.showAutoDismissMessage(data.value, 3000);
           }
           break;
+        }
 
-        case "onError":
+        case "onError": {
           if (data.value) {
             vscode.window.showErrorMessage(data.value);
           }
           break;
+        }
       }
     });
   }
@@ -152,6 +154,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <script nonce="${nonce}" src="${scriptUri}"></script>
       </body>
       </html>`;
+  }
+
+  /**
+   * Displays a temporary message.
+   *
+   * NOTE: VS Code’s showInformationMessage does not support auto-dismissal.
+   * For an auto-dismissing message, this method uses setStatusBarMessage,
+   * which displays the message in the status bar and automatically hides it after the timeout.
+   *
+   * @param message The message to display.
+   * @param timeout The time in milliseconds before the message is dismissed.
+   */
+  private showAutoDismissMessage(message: string, timeout: number = 3000): void {
+    vscode.window.setStatusBarMessage(message, timeout);
   }
 
   /**
@@ -224,7 +240,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Reads the file content from the local filesystem
+   * Reads the file content from the local filesystem.
    */
   private async getFileContents(filePath: string): Promise<string> {
     try {
@@ -242,7 +258,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Combines the content of multiple files into a markdown-like text with code fences
+   * Combines the content of multiple files into a markdown-like text with code fences.
    */
   private async combineSelectedFiles(files: string[]): Promise<string> {
     const combined = [];

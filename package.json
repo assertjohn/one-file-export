@@ -1,9 +1,10 @@
 {
   "name": "one-file-export",
   "displayName": "One File Export",
+  "icon": "media/hub-icon.png",
   "description": "Combine multiple files in a single text block. Great for AI prompting.",
   "publisher": "husaria",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.90.0"
   },

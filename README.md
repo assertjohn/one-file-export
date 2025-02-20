@@ -1,6 +1,8 @@
 # One File Export - README
 
-**One File Export** is a simple yet powerful VSCode extension that allows you to **combine multiple files into a single text block** for easy copying or exporting. Whether you're consolidating code snippets, configuration files, or notes, this extension streamlines the process with just a few clicks.
+**One File Export** is a simple yet powerful VSCode extension that allows you to **combine multiple files into a single text block** for easy copying or exporting. Whether you're consolidating code snippets, configuration files, or notes, this extension streamlines the process with just a few clicks. 
+
+![Screenshot](./media/screenshot.png)
 
 ## Features
 

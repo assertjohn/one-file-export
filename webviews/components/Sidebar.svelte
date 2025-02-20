@@ -103,6 +103,12 @@
         fileTree = fileTree;
         
         updateSelectedFiles(fileTree);
+
+        // Add this to send the updated state back to the extension
+        tsvscode.postMessage({
+            type: 'updateFileTree',
+            value: fileTree
+        });
     }
 
     /**
@@ -151,6 +157,12 @@
             node.expanded = !node.expanded;
             // Force Svelte to react to the change
             fileTree = fileTree;
+
+            // Add this to send the updated state back to the extension
+            tsvscode.postMessage({
+                type: 'updateFileTree',
+                value: fileTree
+            });
         }
     }
 
@@ -299,6 +311,8 @@
         width: 100%;
         height: 100vh;
         overflow: hidden;
+        background-color: var(--vscode-sideBar-background);
+        border-top: 1px solid var(--vscode-sideBar-border);
     }
 
     .sidebar {
@@ -309,6 +323,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        
     }
 
     .tree-container {
