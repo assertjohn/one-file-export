@@ -4,7 +4,7 @@
   "icon": "media/hub-icon.png",
   "description": "Combine multiple files in a single text block. Great for AI prompting.",
   "publisher": "husaria",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.90.0"
   },
