@@ -159,7 +159,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   /**
    * Displays a temporary message.
    *
-   * NOTE: VS Code’s showInformationMessage does not support auto-dismissal.
+   * NOTE: VS Code's showInformationMessage does not support auto-dismissal.
    * For an auto-dismissing message, this method uses setStatusBarMessage,
    * which displays the message in the status bar and automatically hides it after the timeout.
    *
@@ -240,20 +240,58 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Checks if the content appears to be binary by looking for null bytes
+   * or if a high percentage of the content is non-printable characters
+   */
+  private isLikelyBinary(buffer: Buffer): boolean {
+    // Check for null bytes which are common in binary files
+    if (buffer.includes(0)) {
+      return true;
+    }
+
+    // Check the first chunk of the file (up to 1024 bytes)
+    const sampleSize = Math.min(1024, buffer.length);
+    let nonPrintable = 0;
+
+    for (let i = 0; i < sampleSize; i++) {
+      const byte = buffer[i];
+      // Count characters that are not printable ASCII
+      if (byte < 32 && ![9, 10, 13].includes(byte)) { // Exclude tab, newline, carriage return
+        nonPrintable++;
+      }
+    }
+
+    // If more than 30% is non-printable, consider it binary
+    return (nonPrintable / sampleSize) > 0.3;
+  }
+
+  /**
    * Reads the file content from the local filesystem.
    */
-  private async getFileContents(filePath: string): Promise<string> {
+  private async getFileContents(filePath: string): Promise<{ content: string; isBinary: boolean }> {
     try {
       const workspaceRoot = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
       if (!workspaceRoot) {
         throw new Error("No workspace folder found");
       }
       const fullPath = path.join(workspaceRoot, filePath);
-      const content = await fs.readFile(fullPath, "utf-8");
-      return content;
+      
+      // Read file as buffer first
+      const buffer = await fs.readFile(fullPath);
+      
+      // Check if the file appears to be binary
+      const isBinary = this.isLikelyBinary(buffer);
+      
+      if (isBinary) {
+        return { content: `${filePath}\nBinary file.\n`, isBinary: true };
+      }
+
+      // If not binary, convert to text
+      const content = buffer.toString('utf-8');
+      return { content, isBinary: false };
     } catch (error) {
       console.error(`Error reading file ${filePath}:`, error);
-      return "";
+      return { content: `${filePath}\nError reading file.\n`, isBinary: true };
     }
   }
 
@@ -263,8 +301,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private async combineSelectedFiles(files: string[]): Promise<string> {
     const combined = [];
     for (const filePath of files) {
-      const content = await this.getFileContents(filePath);
-      combined.push(`\`\`\`${filePath}\n${content}\n\`\`\`\n`);
+      const { content, isBinary } = await this.getFileContents(filePath);
+      
+      if (isBinary) {
+        combined.push(`\`\`\`${content}\`\`\`\n`);
+      } else {
+        combined.push(`\`\`\`${filePath}\n${content}\n\`\`\`\n`);
+      }
     }
     return combined.join("\n");
   }
